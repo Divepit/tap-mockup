@@ -2,6 +2,29 @@
   text-align: center;
 }
 
+.texta {
+  margin: 5vh;
+  width: 30vw;
+  height: 60vh;
+}
+
+.in {
+  text-align: left;
+}
+.out {
+  text-align: end;
+}
+
+.leftalign{
+  text-align: left;
+  padding-left: 30vw;
+}
+
+.title {
+  font-size: large;
+  font-style: italic;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
