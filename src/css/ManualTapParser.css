@@ -1,0 +1,44 @@
+
+.texta {
+    margin: 10px;
+}
+.in {
+    text-align: left;
+    width: 50vw;
+}
+.out {
+    text-align: end;
+    width: 50vw;
+}
+
+.leftalign{
+    text-align: left;
+    padding-left: 10vw;
+    padding-bottom: 3vh;
+}
+
+.greyout {
+    color: gray;
+}
+
+.title {
+    font-size: large;
+    font-style: italic;
+}
+
+.red {
+    color: red;
+}
+
+.bold {
+    font-weight: bolder;
+}
+
+.taphtml {
+    padding: 200px;
+    text-align: left;
+}
+
+.linedcode {
+    display: block;
+}
