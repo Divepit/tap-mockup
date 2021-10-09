@@ -1,9 +1,19 @@
 import { generateTAP } from "./Functions"
 import { TestList, TestInformation } from "./Types";
 
-export let testSuite: TestList<Test, 'major'> = {list:[],type:'major'};
+// export let testSuite: TestList<Test, 'major'> = {list:[],type:'major'};
+
+export class TestSuite {
+    list: Test[] = [];
+    type:  'major' | 'subtest';
+
+    constructor(type: 'major' | 'subtest') {
+        this.type = type;
+    }
+}
 
 export class Test {
+    subtests = new TestSuite('subtest');
     testInformation: TestInformation = {
         tap: 'not ok This test was never evaluated',
         type: 'major', 
@@ -13,14 +23,13 @@ export class Test {
         location: 'This is a server error', 
         message: 'This test has not been correctly implemented',
         yaml: this.generateYaml('This is a server error', 'This test has not been correctly implemented'),
-        subtests: {list: [], type: 'subtest'},
+        subtests: this.subtests,
     };
-    constructor(description: string, type?: 'subtest'){
+    constructor(testSuite: TestSuite, description: string, type?: 'subtest'){
         if (type === 'subtest') {
             this.testInformation.type = 'subtest'
-        } else {
-            testSuite.list.push(this);
         }
+        testSuite.list.push(this);
         this.testInformation.description = description;
     }
     pass() {
@@ -36,7 +45,7 @@ export class Test {
            this.testInformation.tap += generateTAP(this.testInformation.subtests)
         }
     }
-    fail(location: string = 'None provided', message: string = 'Maybe there was an issue with a subtest') {
+    fail(location: string = 'None provided', message: string = 'None provided') {
         this.testInformation = {
             tap: 'not ok ' + this.testInformation.description,
             type: this.testInformation.type, 
@@ -51,7 +60,7 @@ export class Test {
         if (this.testInformation.type === 'major'){
             this.testInformation.tap += this.generateYaml(location, message)
             this.testInformation.tap += '\n' + generateTAP(this.testInformation.subtests)
-        }
+        }        
     }
     generateYaml(location: string, message: string){
         var yaml = '\n' +
@@ -62,8 +71,7 @@ export class Test {
         return yaml;
     }
     subtest(description: string){        
-        var subtest = new Test(description, 'subtest')
-        this.testInformation.subtests.list.push(subtest)
+        var subtest = new Test(this.testInformation.subtests, description, 'subtest')
         return subtest
     }
 }

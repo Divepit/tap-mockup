@@ -1,4 +1,4 @@
-import { Test, testSuite } from './Test';
+import { Test, TestSuite } from './Test';
 import { TestList } from './Types';
 import { Collapse, Card, Result, Typography, Progress} from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
@@ -7,14 +7,13 @@ import 'antd/dist/antd.css';
 
 const { Panel } = Collapse;
 const { Paragraph, Text } = Typography
-export function generateTAP(testlist: TestList<Test, 'major'|'subtest'>) {
+
+export function generateTAP(testlist: TestSuite) {
     let indent: string = ''
     let tap: string = ''
     if (testlist.type === 'subtest') {        
         indent = '    '
         tap += '\n'
-    } else {
-        testlist = testSuite
     }
     if (testlist.list.length === 0) {
         return ''
@@ -27,7 +26,7 @@ export function generateTAP(testlist: TestList<Test, 'major'|'subtest'>) {
     return tap;
 }
 
-export function generateJSON(testlist: TestList<Test, 'major'>) {
+export function generateJSON(testlist: TestSuite) {
     let jsons: Test[] = []
     testlist.list.forEach(test => {
         jsons.push(test)
@@ -35,8 +34,8 @@ export function generateJSON(testlist: TestList<Test, 'major'>) {
     return JSON.stringify(jsons);
 }
 
-export function generateHtml (testlist: TestList<Test, 'major'>){
-    let json = generateJSON(testSuite)
+export function generateHtml (testlist: TestSuite){
+    let json = generateJSON(testlist)
     let parsedJson = JSON.parse(json);
     let testpanels: object[] = [];
     let errors: object[] = [];
@@ -47,8 +46,8 @@ export function generateHtml (testlist: TestList<Test, 'major'>){
         if (testInformation.type === 'major') {
             testInformation.subtests.list.forEach ((subtest: Test, i: number) => {
                 if (details.length === 0) {
-                    details.push(<hr/>);
-                    details.push(<p>Subtests evaluation: </p>);
+                    details.push(<hr key={index+i}/>);
+                    details.push(<p key={index+i}>Subtests evaluation: </p>);
                 }
                 let subtestInformation = subtest.testInformation;
                 let code = <p style={{color:(subtestInformation.successState === 'failed' ? 'red':'green')}} key={index+i}> {'Subtest ' + (i+1) + ' ' + subtestInformation.successState + ': ' + subtestInformation.description} </p>
@@ -108,7 +107,6 @@ export function generateHtml (testlist: TestList<Test, 'major'>){
 
     return (
         <Card>
-            
             <Result status={status}
                     title={`Evaluation ${errors.length === 0 ? '':'not'} successful`}
                     subTitle={`${errors.length} out of ${testpanels.length} tests ${errors.length === 1 ? 'has':'have'} failed`}
