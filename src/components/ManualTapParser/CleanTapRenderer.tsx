@@ -1,6 +1,6 @@
-import { Input, Row, Col, Button, Card, Divider} from 'antd';
+import { Row, Col, Button, Card, Divider} from 'antd';
 import { Test, TestSuite } from './Test';
-import {generateJSON, generateHtml, generateTAP} from './Functions'
+import {generateJSON, generateHtml, generateTAP, generateHtmlFromTapString } from './Functions'
 import '../../css/ManualTapParser.css'
 import 'antd/dist/antd.css';
 import { useState } from 'react';
@@ -30,7 +30,6 @@ let parsed = Parser.stringify(Parser.parse(generateTAP(testSuite), parserOptions
 console.log(generateJSON(testSuite));
 
 function ManualTapParser() {
-    const { TextArea } = Input;
     const [pureTap, changePureTap] = useState(parsed)
 
     function generateTestButtons () {
@@ -57,24 +56,34 @@ function ManualTapParser() {
     }
     return (
         <div className="ManualTapParser">
-            <Row>
-                <Col span={12} style={{padding:'30px'}}>
-                    <span className="out">
-                        <TextArea rows={22} value={pureTap} className="texta" />
-                    </span>
+            <Row style={{height: '50vh'}}>
+                <Col span={12} style={{padding:'30px', color: 'white'}}>
+                    <Card headStyle={{color: 'white'}}  title={'Pure TAP Output'} style={{textAlign: 'left', background: 'grey', color: 'white', height: '40vh', overflow: 'scroll'}}>
+                        {generateHtmlFromTapString(pureTap, 'pure')}
+                    </Card>       
                 </Col>
                 <Col style={{padding:'30px'}} span={12}>
-                    <Card title={'Change Test evaluations'} extra={'Test 1 has one failing and one passing subtest'}>
+                    <Card title={'Change Test evaluations'} style={{height: '40vh'}} extra={'Test 1 has one failing and one passing subtest'}>
                         {generateTestButtons()}
                     </Card>
                 </Col>
             </Row>
-            <Row>
-                <Col span={24} className={'taphtml'}>
-                    {generateHtml(testSuite)}
+            <Row style={{height: '50vh'}} >
+                <Col span={12}>
+                    <Card className={''} title={'Generating HTML from JSON'}>
+                        {generateHtml(testSuite)}
+                    </Card>
                 </Col>
-            </Row>            
-            
+                
+                <Col span={12}>
+                    <Card  className={''} title={'Generating HTML from TAP String'}>
+                        {generateHtmlFromTapString(pureTap)}
+                    </Card>
+                </Col>
+            </Row>               
+            <br />
+            <Divider />
+            <br />
 
             <div className="leftalign">
                 

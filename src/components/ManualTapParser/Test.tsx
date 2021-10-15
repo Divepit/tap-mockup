@@ -1,5 +1,5 @@
 import { generateTAP } from "./Functions"
-import { TestList, TestInformation } from "./Types";
+import { TestInformation } from "./Types";
 
 // export let testSuite: TestList<Test, 'major'> = {list:[],type:'major'};
 
