@@ -1,13 +1,69 @@
 import { Test, TestSuite } from './Test';
 import { Collapse, Card, Result, Typography, Progress, Divider} from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
+import { FailedMajorTestInformation } from './Types';
 import '../../css/ManualTapParser.css'
 import 'antd/dist/antd.css';
 
 const { Panel } = Collapse;
 const { Paragraph, Text } = Typography
 
-export function generateTAP(testlist: TestSuite) {
+export function generateTestSuiteFromTapString (tap: string) {
+    let testSuite: TestSuite = {list: [], type: 'major'};
+    let lines: string[] = tap.split("\n");
+
+    lines.forEach ((line, index) => {
+        lines[index] = line.replace(/\s/g, '\xa0')
+    })
+
+    lines.forEach ((line, index) => {
+        if (line.substr(0,2) === 'ok'){
+            let test = new Test(testSuite,line.substr(line.indexOf('-')+2,line.length))
+            let i = index+1
+            while (lines[i].substr(0,1) === '\xa0' || lines[i].substr(0,1) === '#') {
+                let line = lines[i].substr(4,lines[i].length)
+                let subtest = new Test(test.subtests,line,'subtest')
+                if (lines[i].substr(4,2) === 'ok') {
+                    subtest.pass()
+                }
+                if (lines[i].substr(4,3) === 'not') {
+                    subtest.fail()
+                }
+            i++
+        } 
+            test.pass()
+        }
+        if (line.substr(0,3) === 'not') {
+            let test = new Test(testSuite,line.substr(line.indexOf('-'),line.length))
+            let i = index+1;
+            let j = index+1;
+            let attributes: any = {};
+            
+            while (lines[i].substr(0,1) === '\xa0' || lines[i].substr(0,1) === '#') {
+                if (lines[i].substr(4,2) === 'ok') {
+                    let subtest = new Test(test.subtests, lines[i].substr(lines[i].indexOf('-')+2,lines[i].length))
+                    subtest.pass()
+                } else if (lines[i].substr(4,3) === 'not') {
+                    let subtest = new Test(test.subtests, lines[i].substr(lines[i].indexOf('-')+2,lines[i].length))
+                    subtest.fail()
+                } else if (lines[i].substr(2,3) === '---') {
+                    
+                    j = i+1;
+                    while (lines[j].substr(2,3) !== '...') { 
+                        attributes[lines[j].substr(2,lines[j].indexOf(':')-2)] = lines[j].substr(lines[j].indexOf(':')+2, lines[j].length);
+                        (test.testInformation as FailedMajorTestInformation).attributes = attributes;
+                        j++;
+                    }
+                }
+            i++
+            }
+            test.fail(attributes)
+        }
+    })    
+    return testSuite;
+} 
+
+export function generateTapFromTestSuite(testlist: TestSuite) {
     let indent: string = ''
     let tap: string = ''
     if (testlist.type === 'subtest') {        
@@ -25,7 +81,7 @@ export function generateTAP(testlist: TestSuite) {
     return tap;
 }
 
-export function generateJSON(testlist: TestSuite) {
+export function generateJsonFromTestSuite(testlist: TestSuite) {
     let jsons: Test[] = []
     testlist.list.forEach(test => {
         jsons.push(test)
@@ -33,8 +89,8 @@ export function generateJSON(testlist: TestSuite) {
     return JSON.stringify(jsons);
 }
 
-export function generateHtml (testlist: TestSuite){
-    let json = generateJSON(testlist)
+export function generateHtmlFromTestSuite (testlist: TestSuite){
+    let json = generateJsonFromTestSuite(testlist)
     let parsedJson = JSON.parse(json);
     let testpanels: object[] = [];
     let errors: object[] = [];
@@ -53,11 +109,18 @@ export function generateHtml (testlist: TestSuite){
                 details.push(code)
             });
             if (testInformation.successState === 'failed') {
+                let attributes: any = testInformation.attributes
+                let attributeList: object[] = [];
+                for (const property in attributes) {
+                    attributes[property] = attributes[property].replace('\xa0', ' ')
+                    attributeList.push(
+                        <p key={property}>{property}: {attributes[property]}</p>
+                    );
+                }
                 let errormessage =  [<Paragraph key={index+1}>
                                             <Collapse>
                                                 <Panel key={index+1} header={`Test ${index+1} – ${testInformation.description} – has failed`} extra={<CloseCircleOutlined/>}>
-                                                    <p>Location: {testInformation.location} </p>
-                                                    <p>Message: {testInformation.message}</p>
+                                                    {attributeList}
                                                     {details}
                                                 </Panel>
                                             </Collapse>
@@ -117,7 +180,6 @@ export function generateHtml (testlist: TestSuite){
         </Card>
     )
 }
-
 
 export function generateHtmlFromTapString (tap: string, type?: 'pure') {
     type passObject = {
@@ -199,7 +261,7 @@ export function generateHtmlFromTapString (tap: string, type?: 'pure') {
             attributes.push(
                 <p key={property}>{property}: {test.attributes[property]}</p>
             );
-          }
+        }
 
         test.subtests.forEach ((subtest, index) => {
             if (details.length === 0) {
@@ -259,8 +321,7 @@ export function generateHtmlFromTapString (tap: string, type?: 'pure') {
                     extra={progressbar}
             >
                 {errorlog}
-            </Result>
-            
+            </Result> 
         </Card>
     )
 }

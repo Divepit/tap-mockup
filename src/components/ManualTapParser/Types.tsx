@@ -3,29 +3,26 @@ export type TestList<Test, type> =
     | {list: Array<Test>, type: 'major'}
     | {list: Array<Test>, type: 'subtest'}
 
-type FailedTestInformation = { 
+ export type FailedTestInformation = { 
     tap: string,
     successState: 'failed', 
     description: string,
     line: 'not ok',
-    location: string, 
-    message: string,
+    attributes: object,
     yaml: string,
-    subtests: TestSuite,
 }
 
-type SuccessfulTestInformation = { 
+export type SuccessfulTestInformation = { 
     tap: string,
     successState: 'successful',
     description: string,
     line: 'ok',
-    subtests: TestSuite
 }
 
-type FailedMajorTestInformation = {type: 'major'} & FailedTestInformation
-type FailedSubtestInformation = {type: 'subtest'} & FailedTestInformation
-type SuccessfulMajorTestInformation = {type: 'major'} & SuccessfulTestInformation
-type SuccessfulSubtestInformation = {type: 'subtest'} & SuccessfulTestInformation
+export type FailedMajorTestInformation = {type: 'major', subtests: TestSuite} & FailedTestInformation
+export type FailedSubtestInformation = {type: 'subtest'} & FailedTestInformation
+export type SuccessfulMajorTestInformation = {type: 'major', subtests: TestSuite} & SuccessfulTestInformation
+export type SuccessfulSubtestInformation = {type: 'subtest'} & SuccessfulTestInformation
 
 export type MajorTestInformation = 
     | SuccessfulMajorTestInformation

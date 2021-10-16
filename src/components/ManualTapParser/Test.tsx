@@ -1,4 +1,4 @@
-import { generateTAP } from "./Functions"
+import { generateTapFromTestSuite } from "./Functions"
 import { TestInformation } from "./Types";
 
 // export let testSuite: TestList<Test, 'major'> = {list:[],type:'major'};
@@ -20,9 +20,8 @@ export class Test {
         successState: 'failed', 
         description: 'There is no test description',
         line: 'not ok',
-        location: 'This is a server error', 
-        message: 'This test has not been correctly implemented',
-        yaml: this.generateYaml('This is a server error', 'This test has not been correctly implemented'),
+        attributes: {},
+        yaml: this.generateYaml({location: 'This is a server error', message: 'This test has not been correctly implemented'}),
         subtests: this.subtests,
     };
     constructor(testSuite: TestSuite, description: string, type?: 'subtest'){
@@ -39,39 +38,42 @@ export class Test {
             successState: 'successful',
             description: this.testInformation.description,
             line: 'ok',
-            subtests: this.testInformation.subtests,
+            subtests: this.subtests,
         }
         if (this.testInformation.type === 'major'){
-           this.testInformation.tap += generateTAP(this.testInformation.subtests)
+           this.testInformation.tap += generateTapFromTestSuite(this.testInformation.subtests)
         }
     }
-    fail(location: string = 'None provided', message: string = 'None provided') {
+    fail(attributes: object = {message: 'No message provided'}) {
         this.testInformation = {
             tap: 'not ok ' + this.testInformation.description,
             type: this.testInformation.type, 
             successState: 'failed', 
             description: this.testInformation.description,
             line: 'not ok',
-            location: location, 
-            message: message,
-            yaml: this.generateYaml(location,message),
-            subtests: this.testInformation.subtests
+            attributes: attributes,
+            yaml: this.generateYaml(attributes),
+            subtests: this.subtests
         }        
         if (this.testInformation.type === 'major'){
-            this.testInformation.tap += this.generateYaml(location, message)
-            this.testInformation.tap += '\n' + generateTAP(this.testInformation.subtests)
+            this.testInformation.tap += this.generateYaml(attributes)
+            this.testInformation.tap += '\n' + generateTapFromTestSuite(this.testInformation.subtests)
         }        
     }
-    generateYaml(location: string, message: string){
+    generateYaml(attributes: any){
         var yaml = '\n' +
-            '    ---\n' +
-            '    location: ' + location + '\n' +
-            '    cause: ' + message + '\n' +
-            '    ...';
+            '    ---\n'
+
+        for (const property in attributes) {
+            attributes[property] = attributes[property].replace('\xa0', ' ')
+            yaml += '    ' + property + ': ' + attributes[property] + '\n';
+        }
+        yaml += '    ...';
+        
         return yaml;
     }
     subtest(description: string){        
-        var subtest = new Test(this.testInformation.subtests, description, 'subtest')
+        var subtest = new Test(this.subtests, description, 'subtest')
         return subtest
     }
 }
